@@ -1,0 +1,188 @@
+<?php 
+ include('server/connexion.php'); 
+ include_once('server/ajout.php');
+
+
+ session_start();
+if(isset($_SESSION['user_id'])) {
+  $user_id = $_SESSION['user_id'];
+
+
+}else{
+  $user_id = '';
+}
+if(isset($_POST['logout'])) {
+  session_destroy();
+  header("location: login.php");
+}
+
+
+
+   
+
+if (isset($_POST['ajout_a_wishlist']) && isset($_SESSION['user_id'])) {
+  $result = ajouterAWishlist($mysqli, $_SESSION['user_id'], $_POST['product_id']);
+  if (is_array($result) && isset($result['message'])) {
+      $type = $result['success'] ? 'success' : 'error';
+      echo '<script>document.addEventListener("DOMContentLoaded", function() { showNotification("' . addslashes($result['message']) . '", "' . $type . '"); });</script>';
+  } else {
+      echo "<script>document.addEventListener('DOMContentLoaded', function() { showNotification('Une erreur est survenue', 'error'); });</script>";
+  }
+}
+
+if (isset($_POST['ajout_a_panier']) && isset($_SESSION['user_id'])) {
+  $result = ajouterAuPanier($mysqli, $_SESSION['user_id'], $_POST['product_id'], $_POST['qty']);
+  if (is_array($result) && isset($result['message'])) {
+      $type = $result['success'] ? 'success' : 'error';
+      echo '<script>document.addEventListener("DOMContentLoaded", function() { showNotification("' . addslashes($result['message']) . '", "' . $type . '"); });</script>';
+  } else {
+      echo "<script>document.addEventListener('DOMContentLoaded', function() { showNotification('Une erreur est survenue', 'error'); });</script>";
+  }
+}
+
+?>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Produit-Match your Coffee</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style2.css">
+
+    <!--boxin-icon-link-->
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@latest/css/boxicons.min.css">
+    <!--remix-icon-link-->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
+    <!--google font-icon-link-->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+
+</head>
+
+<body>
+<div id="notification-container"></div>
+
+    <header>
+    <?php include('nav.php');?>
+
+    </header>
+
+
+    <main>
+        <?php include('server/connexion.php');
+    if( isset($_GET['id'])){
+         $id = $_GET['id'];
+         $stmt = $mysqli->prepare("SELECT * FROM products WHERE id = ?");
+         $stmt->bind_param( "i", $id);
+         $stmt->execute();
+         $product = $stmt->get_result();
+    }
+
+    ?>
+        <section class="product">
+            <?php  while( $row = $product->fetch_assoc()){?>
+
+
+            <div class="product-img">
+                <img src="assets/matcha-coffee/<?php echo $row['image'];?>">
+
+            </div>
+            <form action="" method="POST" class="box">
+
+                <div class="product-detail">
+                    <h2> <?php echo $row['name']; ?> </h2>
+                    <h3> <?php echo $row['price']; ?> CHF</h3>
+                    <p> <?php echo $row['product_detail'] ?> </p>
+                    <input type="number" name="qty" value="1" required min="1" max="99" maxlength="2" class="qty">
+
+                    <input type="hidden" name="product_id" value="<?php echo $row['id'];?>">
+
+                    <button type="submit" name="ajout_a_panier">
+                        <i class="ri-shopping-cart-fill"></i>
+                    </button>
+                    <button type="submit" name="ajout_a_wishlist">
+                        <i class="ri-heart-fill"></i>
+                    </button>
+
+                    <div class="features-2">
+            <div class="features-content-2">
+
+
+                <div class="box">
+                    <div class="f-icon">
+                        <i class="ri-truck-fill"></i>
+                    </div>
+                    <div class="f-text">
+                        <h6>Frais de port gratuits à partir de 30.-</h6>
+                    </div>
+                </div>
+                <div class="box">
+                    <div class="f-icon">
+                        <i class="ri-customer-service-fill"></i>
+                    </div>
+                    <div class="f-text">
+                        <h6>Garantie de remboursement de 30 jours</h6>
+                    </div>
+                </div>
+                <div class="box">
+                    <div class="f-icon">
+                        <i class="ri-bank-card-fill"></i>
+                    </div>
+                    <div class="f-text">
+                        <h6>Paiement à la livraison</h6>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+                </div>
+            </form>
+         
+
+
+            </div>
+
+            <?php   } ?>
+
+            
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <img src="assets/logo.png" alt="logo">
+            <p>Découvrez le meilleur du matcha et du café, livrés directement chez vous !</p>
+            <p><strong>Paiement à la Livraison Disponible !</strong></p>
+        </div>
+
+        <div class="footer-links">
+            <ul>
+                <li><a href="#about">À Propos</a></li>
+                <li><a href="#shop">Boutique</a></li>
+                <li><a href="#contact">Contact</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-social">
+            <a href="#" aria-label="Facebook"><i class="boxin-icon-link fa fa-facebook"></i></a>
+            <a href="#" aria-label="Instagram"><i class="boxin-icon-link fa fa-instagram"></i></a>
+            <a href="#" aria-label="Twitter"><i class="boxin-icon-link fa fa-twitter"></i></a>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2024 Match Your Coffee. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+</body>
+
+</html>
